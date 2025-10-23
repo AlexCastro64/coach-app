@@ -1,8 +1,26 @@
-# Welcome to your Expo app 👋
+# Welcome to your Expo app
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started
+
+### Option 1: Using Docker (Recommended)
+
+The easiest way to set up the development environment is using Docker:
+
+1. Make sure you have [Docker](https://docs.docker.com/get-docker/) installed
+
+2. Build and start the development server:
+   ```bash
+   ./docker-setup.sh build
+   ./docker-setup.sh start
+   ```
+
+3. Access Expo DevTools at http://localhost:19002
+
+For detailed Docker setup instructions, see [DOCKER_SETUP.md](./DOCKER_SETUP.md).
+
+### Option 2: Native Setup
 
 1. Install dependencies
 
