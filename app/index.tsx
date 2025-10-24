@@ -14,7 +14,8 @@ export default function LandingPage() {
 
   // Flatten styles to prevent nested arrays
   const scrollViewStyle = StyleSheet.flatten([styles.container, { backgroundColor }]);
-  const ctaButtonStyle = StyleSheet.flatten([styles.ctaButton, { backgroundColor: tintColor }]);
+  // Use a consistent blue color for the button that works in both light and dark modes
+  const ctaButtonStyle = StyleSheet.flatten([styles.ctaButton, { backgroundColor: '#007AFF' }]);
 
   return (
     <ScrollView style={scrollViewStyle}>
@@ -134,19 +135,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.1)',
     marginBottom: 20,
+    alignItems: 'center',
   },
   featureIcon: {
     fontSize: 40,
     marginBottom: 12,
+    textAlign: 'center',
   },
   featureTitle: {
     fontSize: 20,
     marginBottom: 8,
+    textAlign: 'center',
   },
   featureDescription: {
     fontSize: 15,
     lineHeight: 22,
     opacity: 0.7,
+    textAlign: 'center',
   },
   ctaSection: {
     alignItems: 'center',
