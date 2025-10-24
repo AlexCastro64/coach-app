@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { TokenService } from './token.service';
 
-// Base API URL - should be moved to environment config
+// Base API URL - configured via EXPO_PUBLIC_API_URL in .env file
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 class ApiClient {
