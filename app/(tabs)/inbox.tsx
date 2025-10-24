@@ -23,6 +23,7 @@ export default function InboxScreen() {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [pendingImageUri, setPendingImageUri] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
   const backgroundColor = useThemeColor({}, 'background');
@@ -122,7 +123,7 @@ export default function InboxScreen() {
     }, 1000);
   };
 
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string, imageUri?: string) => {
     if (sending) return;
 
     setSending(true);
@@ -133,8 +134,8 @@ export default function InboxScreen() {
       user_id: 1,
       sender_type: 'user',
       content: text,
-      attachment_type: null,
-      attachment_url: null,
+      attachment_type: imageUri ? 'photo' : null,
+      attachment_url: imageUri || null,
       ai_analysis: null,
       is_read: false,
       read_at: null,
@@ -145,6 +146,9 @@ export default function InboxScreen() {
     // Add message to list immediately
     setMessages(prev => [...prev, newMessage]);
 
+    // Clear pending image
+    setPendingImageUri(null);
+
     // Scroll to bottom
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
@@ -152,13 +156,17 @@ export default function InboxScreen() {
 
     // TODO: Replace with actual API call
     // try {
+    //   const formData = new FormData();
+    //   formData.append('content', text);
+    //   if (imageUri) {
+    //     formData.append('photo', { uri: imageUri, type: 'image/jpeg', name: 'photo.jpg' });
+    //   }
     //   const response = await fetch('/api/messages', {
     //     method: 'POST',
     //     headers: {
-    //       'Content-Type': 'application/json',
     //       Authorization: `Bearer ${token}`
     //     },
-    //     body: JSON.stringify({ content: text })
+    //     body: formData
     //   });
     //   const data = await response.json();
     //   // Update message with server response
@@ -174,10 +182,21 @@ export default function InboxScreen() {
         id: Date.now() + 1,
         user_id: 1,
         sender_type: 'coach',
-        content: "Thanks for sharing! I'm analyzing your message and will respond with personalized guidance shortly.",
+        content: imageUri
+          ? "Great! Let me analyze this for you..."
+          : "Thanks for sharing! I'm analyzing your message and will respond with personalized guidance shortly.",
         attachment_type: null,
         attachment_url: null,
-        ai_analysis: null,
+        ai_analysis: imageUri ? {
+          food_items: ['Grilled chicken breast', 'Brown rice', 'Steamed broccoli'],
+          description: 'Healthy balanced meal with lean protein and vegetables',
+          estimated_calories: 450,
+          estimated_protein_g: 42,
+          estimated_carbs_g: 48,
+          estimated_fat_g: 8,
+          quality_score: 9,
+          meal_type: 'lunch',
+        } : null,
         is_read: false,
         read_at: null,
         is_ai_generated: true,
@@ -226,7 +245,7 @@ export default function InboxScreen() {
             });
 
             if (!result.canceled && result.assets[0]) {
-              handlePhotoSelected(result.assets[0].uri);
+              setPendingImageUri(result.assets[0].uri);
             }
           },
         },
@@ -240,7 +259,7 @@ export default function InboxScreen() {
             });
 
             if (!result.canceled && result.assets[0]) {
-              handlePhotoSelected(result.assets[0].uri);
+              setPendingImageUri(result.assets[0].uri);
             }
           },
         },
@@ -252,67 +271,8 @@ export default function InboxScreen() {
     );
   };
 
-  const handlePhotoSelected = async (uri: string) => {
-    setSending(true);
-
-    // Create message with photo
-    const photoMessage: Message = {
-      id: Date.now(),
-      user_id: 1,
-      sender_type: 'user',
-      content: '',
-      attachment_type: 'photo',
-      attachment_url: uri,
-      ai_analysis: null,
-      is_read: false,
-      read_at: null,
-      is_ai_generated: false,
-      created_at: new Date().toISOString(),
-    };
-
-    setMessages(prev => [...prev, photoMessage]);
-
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-
-    // TODO: Upload photo to server
-    // const formData = new FormData();
-    // formData.append('photo', { uri, type: 'image/jpeg', name: 'photo.jpg' });
-    // const response = await fetch('/api/messages', { method: 'POST', body: formData });
-
-    // Simulate AI analysis for meal photos
-    setTimeout(() => {
-      const analysisMessage: Message = {
-        id: Date.now() + 1,
-        user_id: 1,
-        sender_type: 'coach',
-        content: 'Great! Let me analyze this for you...',
-        attachment_type: null,
-        attachment_url: null,
-        ai_analysis: {
-          food_items: ['Grilled chicken breast', 'Brown rice', 'Steamed broccoli'],
-          description: 'Healthy balanced meal with lean protein and vegetables',
-          estimated_calories: 450,
-          estimated_protein_g: 42,
-          estimated_carbs_g: 48,
-          estimated_fat_g: 8,
-          quality_score: 9,
-          meal_type: 'lunch',
-        },
-        is_read: false,
-        read_at: null,
-        is_ai_generated: true,
-        created_at: new Date().toISOString(),
-      };
-
-      setMessages(prev => [...prev, analysisMessage]);
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }, 2000);
-
-    setSending(false);
+  const handleRemoveImage = () => {
+    setPendingImageUri(null);
   };
 
   const handleImagePress = (url: string) => {
@@ -378,6 +338,8 @@ export default function InboxScreen() {
       <MessageInput
         onSendMessage={handleSendMessage}
         onAttachPhoto={handleAttachPhoto}
+        selectedImageUri={pendingImageUri}
+        onRemoveImage={handleRemoveImage}
         disabled={sending}
       />
 
