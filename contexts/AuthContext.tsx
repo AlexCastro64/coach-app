@@ -26,6 +26,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const initializeAuth = async () => {
     try {
+      // Skip auth initialization if auth is disabled
+      const authDisabled = process.env.EXPO_PUBLIC_DISABLE_AUTH === 'true';
+      if (authDisabled) {
+        console.log('Authentication disabled - skipping auth initialization');
+        setIsLoading(false);
+        return;
+      }
+
       const storedToken = await TokenService.getToken();
       if (storedToken) {
         setToken(storedToken);

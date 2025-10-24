@@ -17,6 +17,17 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoading) return;
 
+    // Skip authentication checks if auth is disabled
+    const authDisabled = process.env.EXPO_PUBLIC_DISABLE_AUTH === 'true';
+    if (authDisabled) {
+      const inAuthGroup = segments[0] === '(tabs)';
+      if (!inAuthGroup) {
+        // Redirect to tabs when auth is disabled
+        router.replace('/(tabs)');
+      }
+      return;
+    }
+
     const inAuthGroup = segments[0] === '(tabs)';
 
     if (!isAuthenticated) {
