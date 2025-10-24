@@ -12,8 +12,12 @@ export default function LandingPage() {
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
 
+  // Flatten styles to prevent nested arrays
+  const scrollViewStyle = StyleSheet.flatten([styles.container, { backgroundColor }]);
+  const ctaButtonStyle = StyleSheet.flatten([styles.ctaButton, { backgroundColor: tintColor }]);
+
   return (
-    <ScrollView style={[styles.container, { backgroundColor }]}>
+    <ScrollView style={scrollViewStyle}>
       <ThemedView style={styles.content}>
         {/* Hero Section */}
         <View style={styles.heroSection}>
@@ -53,7 +57,7 @@ export default function LandingPage() {
         <View style={styles.ctaSection}>
           <Link href="/(tabs)" asChild>
             <Pressable
-              style={[styles.ctaButton, { backgroundColor: tintColor }]}
+              style={ctaButtonStyle}
             >
               <ThemedText style={styles.ctaButtonText}>
                 Get Started
@@ -123,13 +127,13 @@ const styles = StyleSheet.create({
   },
   featuresSection: {
     marginBottom: 48,
-    gap: 20,
   },
   featureCard: {
     padding: 24,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.1)',
+    marginBottom: 20,
   },
   featureIcon: {
     fontSize: 40,

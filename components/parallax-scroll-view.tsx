@@ -44,17 +44,24 @@ export default function ParallaxScrollView({
     };
   });
 
+  // Flatten styles to prevent nested arrays
+  const scrollViewStyle = StyleSheet.flatten([
+    { flex: 1 },
+    backgroundColor ? { backgroundColor } : undefined,
+  ]);
+
+  const headerStyle = StyleSheet.flatten([
+    styles.header,
+    headerBackgroundColor[colorScheme] ? { backgroundColor: headerBackgroundColor[colorScheme] } : undefined,
+    headerAnimatedStyle,
+  ]);
+
   return (
     <Animated.ScrollView
       ref={scrollRef}
-      style={{ backgroundColor, flex: 1 }}
+      style={scrollViewStyle}
       scrollEventThrottle={16}>
-      <Animated.View
-        style={[
-          styles.header,
-          { backgroundColor: headerBackgroundColor[colorScheme] },
-          headerAnimatedStyle,
-        ]}>
+      <Animated.View style={headerStyle}>
         {headerImage}
       </Animated.View>
       <ThemedView style={styles.content}>{children}</ThemedView>
@@ -73,7 +80,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 32,
-    gap: 16,
     overflow: 'hidden',
   },
 });

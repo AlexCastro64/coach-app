@@ -28,6 +28,9 @@ export default function InboxScreen() {
   const backgroundColor = useThemeColor({}, 'background');
   const tintColor = useThemeColor({}, 'tint');
 
+  // Flatten styles to prevent nested arrays
+  const headerStyle = StyleSheet.flatten([styles.header, { backgroundColor }]);
+
   // Mock data for development - Replace with actual API calls later
   useEffect(() => {
     loadMessages();
@@ -345,7 +348,7 @@ export default function InboxScreen() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor }]}>
+      <View style={headerStyle}>
         <ThemedText type="title" style={styles.headerTitle}>
           Coach
         </ThemedText>
@@ -369,7 +372,7 @@ export default function InboxScreen() {
       {/* Loading indicator when sending */}
       {sending && (
         <View style={styles.sendingIndicator}>
-          <ActivityIndicator size="small" color={tintColor} />
+          <ActivityIndicator size="small" color={tintColor} style={{ marginRight: 8 }} />
           <ThemedText style={styles.sendingText}>Sending...</ThemedText>
         </View>
       )}
@@ -441,13 +444,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
-    gap: 6,
   },
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: '#10B981',
+    marginRight: 6,
   },
   statusText: {
     fontSize: 14,
@@ -478,7 +481,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
-    gap: 8,
   },
   sendingText: {
     fontSize: 14,

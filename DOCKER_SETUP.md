@@ -27,22 +27,22 @@ We provide a convenient setup script that handles all common operations:
 
 1. **Build the Docker image:**
    ```bash
-   ./docker-setup.sh build
+   ./start.sh build
    ```
 
 2. **Start the development server:**
    ```bash
-   ./docker-setup.sh start
+   ./start.sh start
    ```
 
 3. **View logs:**
    ```bash
-   ./docker-setup.sh logs
+   ./start.sh logs
    ```
 
 4. **Stop the development server:**
    ```bash
-   ./docker-setup.sh stop
+   ./start.sh stop
    ```
 
 ### Manual Setup
@@ -121,16 +121,16 @@ The `docker-setup.sh` script provides the following commands:
 
 ```bash
 # Install new dependencies
-./docker-setup.sh exec npm install react-native-maps
+./start.sh exec npm install react-native-maps
 
 # Run linter
-./docker-setup.sh exec npm run lint
+./start.sh exec npm run lint
 
 # Run a specific npm script
-./docker-setup.sh exec npm run android
+./start.sh exec npm run android
 
 # Access container shell
-./docker-setup.sh exec sh
+./start.sh exec sh
 ```
 
 ## Project Structure
@@ -191,7 +191,7 @@ The following ports are exposed:
 
 2. **Stop any conflicting services and restart:**
    ```bash
-   ./docker-setup.sh restart
+   ./start.sh restart
    ```
 
 ### Can't connect to the app on physical device
@@ -200,7 +200,7 @@ The following ports are exposed:
 2. **Check firewall settings** - Docker needs to be allowed to accept incoming connections
 3. **Try tunnel mode in Expo:**
    ```bash
-   ./docker-setup.sh exec npx expo start --tunnel
+   ./start.sh exec npx expo start --tunnel
    ```
 
 ### Changes not reflecting (hot reload not working)
@@ -212,20 +212,20 @@ The following ports are exposed:
 
 2. **Restart the development server:**
    ```bash
-   ./docker-setup.sh restart
+   ./start.sh restart
    ```
 
 ### Dependencies not installing
 
 1. **Clear Docker cache and rebuild:**
    ```bash
-   ./docker-setup.sh clean
-   ./docker-setup.sh build
+   ./start.sh clean
+   ./start.sh build
    ```
 
 2. **Install dependencies manually:**
    ```bash
-   ./docker-setup.sh install
+   ./start.sh install
    ```
 
 ### Out of disk space
@@ -292,12 +292,12 @@ services:
 
 1. **Start the server:**
    ```bash
-   ./docker-setup.sh start
+   ./start.sh start
    ```
 
 2. **View logs (optional):**
    ```bash
-   ./docker-setup.sh logs
+   ./start.sh logs
    ```
 
 3. **Make changes to your code:**
@@ -306,28 +306,28 @@ services:
 
 4. **Run tests or linting:**
    ```bash
-   ./docker-setup.sh exec npm run lint
+   ./start.sh exec npm run lint
    ```
 
 5. **When done, stop the server:**
    ```bash
-   ./docker-setup.sh stop
+   ./start.sh stop
    ```
 
 ### Adding New Dependencies
 
 ```bash
 # Add a new package
-./docker-setup.sh exec npm install <package-name>
+./start.sh exec npm install <package-name>
 
 # Or if the container is not running
-./docker-setup.sh install
+./start.sh install
 ```
 
 ### Updating Expo SDK
 
 ```bash
-./docker-setup.sh exec npx expo install --fix
+./start.sh exec npx expo install --fix
 ```
 
 ## CI/CD Integration
@@ -364,23 +364,23 @@ While this Docker setup is optimized for development, you can also use it for pr
 ### Web Build
 
 ```bash
-./docker-setup.sh exec npx expo export:web
+./start.sh exec npx expo export:web
 ```
 
 ### Native Builds (EAS Build)
 
 ```bash
 # Install EAS CLI
-./docker-setup.sh exec npm install -g eas-cli
+./start.sh exec npm install -g eas-cli
 
 # Configure EAS
-./docker-setup.sh exec eas build:configure
+./start.sh exec eas build:configure
 
 # Build for iOS
-./docker-setup.sh exec eas build --platform ios
+./start.sh exec eas build --platform ios
 
 # Build for Android
-./docker-setup.sh exec eas build --platform android
+./start.sh exec eas build --platform android
 ```
 
 ## Comparison: Docker vs Native Setup

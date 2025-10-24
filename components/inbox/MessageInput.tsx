@@ -39,16 +39,32 @@ export function MessageInput({ onSendMessage, onAttachPhoto, disabled }: Message
     }
   };
 
+  // Flatten styles to prevent nested arrays
+  const containerStyle = StyleSheet.flatten([styles.container, { backgroundColor, borderTopColor: borderColor }]);
+  const attachButtonStyle = StyleSheet.flatten([styles.attachButton, disabled && styles.disabledButton]);
+  const inputStyle = StyleSheet.flatten([
+    styles.input,
+    {
+      backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#fff',
+      color: textColor,
+      borderColor: borderColor
+    }
+  ]);
+  const sendButtonStyle = StyleSheet.flatten([
+    styles.sendButton,
+    (!message.trim() || disabled) && styles.disabledButton
+  ]);
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <View style={[styles.container, { backgroundColor, borderTopColor: borderColor }]}>
+      <View style={containerStyle}>
         <Pressable
           onPress={onAttachPhoto}
           disabled={disabled}
-          style={[styles.attachButton, disabled && styles.disabledButton]}
+          style={attachButtonStyle}
         >
           <IconSymbol
             name="camera.fill"
@@ -58,14 +74,7 @@ export function MessageInput({ onSendMessage, onAttachPhoto, disabled }: Message
         </Pressable>
 
         <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#fff',
-              color: textColor,
-              borderColor: borderColor
-            }
-          ]}
+          style={inputStyle}
           placeholder="Message your coach..."
           placeholderTextColor="#999"
           value={message}
@@ -80,10 +89,7 @@ export function MessageInput({ onSendMessage, onAttachPhoto, disabled }: Message
         <Pressable
           onPress={handleSend}
           disabled={!message.trim() || disabled}
-          style={[
-            styles.sendButton,
-            (!message.trim() || disabled) && styles.disabledButton
-          ]}
+          style={sendButtonStyle}
         >
           <IconSymbol
             name="paperplane.fill"
@@ -103,12 +109,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderTopWidth: 1,
-    gap: 8,
   },
   attachButton: {
     padding: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 8,
   },
   input: {
     flex: 1,
@@ -119,6 +125,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 16,
     borderWidth: 1,
+    marginRight: 8,
   },
   sendButton: {
     padding: 8,

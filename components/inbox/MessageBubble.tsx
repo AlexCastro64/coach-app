@@ -77,9 +77,13 @@ export function MessageBubble({ message, onImagePress }: MessageBubbleProps) {
     return '#EF4444'; // Red
   };
 
+  // Flatten styles to prevent nested arrays
+  const containerStyle = StyleSheet.flatten([styles.container, isUser && styles.userContainer]);
+  const bubbleStyle = StyleSheet.flatten([styles.bubble, { backgroundColor: getBubbleColor() }]);
+
   return (
-    <View style={[styles.container, isUser && styles.userContainer]}>
-      <View style={[styles.bubble, { backgroundColor: getBubbleColor() }]}>
+    <View style={containerStyle}>
+      <View style={bubbleStyle}>
         {!isUser && !isSystem && (
           <ThemedText style={[styles.senderName, { color: getTextColor() }]}>
             Coach
@@ -172,21 +176,22 @@ const styles = StyleSheet.create({
   macrosContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
     marginVertical: 4,
   },
   macroText: {
     fontSize: 12,
     fontWeight: '500',
+    marginRight: 8,
+    marginBottom: 4,
   },
   qualityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
-    gap: 6,
   },
   qualityLabel: {
     fontSize: 12,
+    marginRight: 6,
   },
   qualityScore: {
     fontSize: 14,

@@ -41,6 +41,27 @@ check_docker() {
     fi
 }
 
+# Check if dependencies are installed in the Docker volume
+check_dependencies() {
+    print_message "Checking dependencies in Docker volume..." "$BLUE"
+    
+    # Check if node_modules exists in the Docker volume by running a test command
+    if ! docker-compose run --rm coach-app test -d /app/node_modules 2>/dev/null; then
+        print_message "Dependencies not found in Docker volume. Installing..." "$YELLOW"
+        install
+        return 0
+    fi
+    
+    # Check if expo-secure-store is installed (the package that was causing the error)
+    if ! docker-compose run --rm coach-app test -d /app/node_modules/expo-secure-store 2>/dev/null; then
+        print_message "Some dependencies are missing. Reinstalling..." "$YELLOW"
+        install
+        return 0
+    fi
+    
+    print_message "Dependencies are up to date." "$GREEN"
+}
+
 # Build Docker image
 build() {
     print_header "Building Docker Image"
@@ -51,14 +72,18 @@ build() {
 # Start the development server
 start() {
     print_header "Starting Development Server"
+    
+    # Check and install dependencies if needed
+    check_dependencies
+    
     docker-compose up -d
     print_message "Development server started!" "$GREEN"
     print_message "You can now access:" "$BLUE"
     print_message "  - Expo DevTools: http://localhost:19002" "$YELLOW"
     print_message "  - Metro Bundler: http://localhost:8081" "$YELLOW"
     echo ""
-    print_message "To view logs, run: ./docker-setup.sh logs" "$BLUE"
-    print_message "To stop, run: ./docker-setup.sh stop" "$BLUE"
+    print_message "To view logs, run: ./start.sh logs" "$BLUE"
+    print_message "To stop, run: ./start.sh stop" "$BLUE"
 }
 
 # Stop the development server
@@ -116,11 +141,11 @@ install() {
 # Show help
 show_help() {
     print_header "Coach App - Docker Setup Script"
-    echo "Usage: ./docker-setup.sh [command]"
+    echo "Usage: ./start.sh [command]"
     echo ""
     echo "Commands:"
+    echo "  start       Start the development server (default if no command provided)"
     echo "  build       Build the Docker image"
-    echo "  start       Start the development server"
     echo "  stop        Stop the development server"
     echo "  restart     Restart the development server"
     echo "  logs        View development server logs"
@@ -130,10 +155,13 @@ show_help() {
     echo "  help        Show this help message"
     echo ""
     echo "Examples:"
-    echo "  ./docker-setup.sh build"
-    echo "  ./docker-setup.sh start"
-    echo "  ./docker-setup.sh exec npm run lint"
-    echo "  ./docker-setup.sh logs"
+    echo "  ./start.sh              # Starts the server (default)"
+    echo "  ./start.sh start        # Starts the server (explicit)"
+    echo "  ./start.sh build        # Build the Docker image"
+    echo "  ./start.sh exec npm run lint"
+    echo "  ./start.sh logs"
+    echo ""
+    echo "Note: Dependencies will be automatically checked and installed when starting."
     echo ""
 }
 
@@ -142,8 +170,8 @@ main() {
     # Check Docker installation
     check_docker
 
-    # Parse command
-    case "${1:-help}" in
+    # Parse command (default to 'start' if no command provided)
+    case "${1:-start}" in
         build)
             build
             ;;

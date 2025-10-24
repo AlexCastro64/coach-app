@@ -12,8 +12,8 @@ The easiest way to set up the development environment is using Docker:
 
 2. Build and start the development server:
    ```bash
-   ./docker-setup.sh build
-   ./docker-setup.sh start
+   ./start.sh build
+   ./start.sh start
    ```
 
 3. Access Expo DevTools at http://localhost:19002
