@@ -5,9 +5,10 @@ import { TokenService } from './token.service';
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 class ApiClient {
+  private static instance: ApiClient;
   private client: AxiosInstance;
 
-  constructor() {
+  private constructor() {
     this.client = axios.create({
       baseURL: API_BASE_URL,
       timeout: 30000,
@@ -45,9 +46,12 @@ class ApiClient {
     );
   }
 
-  getInstance(): AxiosInstance {
-    return this.client;
+  public static getInstance(): AxiosInstance {
+    if (!ApiClient.instance) {
+      ApiClient.instance = new ApiClient();
+    }
+    return ApiClient.instance.client;
   }
 }
 
-export const apiClient = new ApiClient().getInstance();
+export const apiClient = ApiClient.getInstance();
