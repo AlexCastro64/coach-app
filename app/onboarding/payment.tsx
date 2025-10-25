@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserService } from '@/services/user.service';
 
 export default function OnboardingPayment() {
   const router = useRouter();
@@ -26,15 +27,24 @@ export default function OnboardingPayment() {
 
       Alert.alert(
         'Stripe Integration Needed',
-        'This will integrate with Stripe to process the payment. For now, we\'ll skip to the inbox.',
+        'This will integrate with Stripe to process the payment. For now, we\'ll mark onboarding as complete and proceed to the inbox.',
         [
           {
             text: 'Continue to App',
             onPress: async () => {
-              // Refresh user data to get updated onboarding status
-              // In production, the backend would mark onboarding_completed=true after payment
-              await refreshUser();
-              router.replace('/(tabs)/inbox');
+              try {
+                // Mark onboarding as completed on the backend
+                await UserService.completeOnboarding();
+
+                // Refresh user data to get updated onboarding status
+                await refreshUser();
+
+                // Navigate to inbox
+                router.replace('/(tabs)/inbox');
+              } catch (error) {
+                Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
+                console.error('Onboarding completion error:', error);
+              }
             }
           }
         ]
