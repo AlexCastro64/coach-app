@@ -17,6 +17,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { Message } from '@/types/message';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import * as ImagePicker from 'expo-image-picker';
+import { MessageService } from '@/services/message.service';
 
 export default function InboxScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -31,7 +32,7 @@ export default function InboxScreen() {
   // Flatten styles to prevent nested arrays
   const headerStyle = StyleSheet.flatten([styles.header, { backgroundColor }]);
 
-  // Mock data for development - Replace with actual API calls later
+  // Load messages on mount
   useEffect(() => {
     loadMessages();
   }, []);
@@ -39,90 +40,23 @@ export default function InboxScreen() {
   const loadMessages = async () => {
     setLoading(true);
 
-    // Simulated API call - Replace with actual API endpoint
-    // const response = await fetch('/api/messages', {
-    //   headers: { Authorization: `Bearer ${token}` }
-    // });
-    // const data = await response.json();
-
-    // Mock data for demonstration
-    setTimeout(() => {
-      const mockMessages: Message[] = [
-        {
-          id: 1,
-          user_id: 1,
-          sender_type: 'coach',
-          content: "Hey! Welcome to your AI fitness coaching journey. I'm here to help you reach your goals with personalized guidance and accountability.",
-          attachment_type: null,
-          attachment_url: null,
-          ai_analysis: null,
-          is_read: true,
-          read_at: new Date().toISOString(),
-          is_ai_generated: true,
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: 2,
-          user_id: 1,
-          sender_type: 'coach',
-          content: "To get started, I'd love to learn more about you. What's your primary fitness goal?",
-          attachment_type: null,
-          attachment_url: null,
-          ai_analysis: null,
-          is_read: true,
-          read_at: new Date().toISOString(),
-          is_ai_generated: true,
-          created_at: new Date(Date.now() - 3500000).toISOString(),
-        },
-        {
-          id: 3,
-          user_id: 1,
-          sender_type: 'user',
-          content: "I want to lose weight and build muscle. I've been struggling with consistency.",
-          attachment_type: null,
-          attachment_url: null,
-          ai_analysis: null,
-          is_read: true,
-          read_at: new Date().toISOString(),
-          is_ai_generated: false,
-          created_at: new Date(Date.now() - 3400000).toISOString(),
-        },
-        {
-          id: 4,
-          user_id: 1,
-          sender_type: 'coach',
-          content: "That's a great goal! Consistency is key, and that's exactly what I'm here to help you with. With our financial accountability system, you'll have real stakes to keep you on track. Let's build a plan that works for your lifestyle.",
-          attachment_type: null,
-          attachment_url: null,
-          ai_analysis: null,
-          is_read: true,
-          read_at: new Date().toISOString(),
-          is_ai_generated: true,
-          created_at: new Date(Date.now() - 3300000).toISOString(),
-        },
-        {
-          id: 5,
-          user_id: 1,
-          sender_type: 'system',
-          content: "Daily check-in reminder: Don't forget to log your weight and progress photos this morning!",
-          attachment_type: null,
-          attachment_url: null,
-          ai_analysis: null,
-          is_read: false,
-          read_at: null,
-          is_ai_generated: false,
-          created_at: new Date(Date.now() - 1800000).toISOString(),
-        },
-      ];
-
-      setMessages(mockMessages);
-      setLoading(false);
+    try {
+      const response = await MessageService.getMessages();
+      setMessages(response.data);
 
       // Scroll to bottom after messages load
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
-    }, 1000);
+    } catch (error) {
+      console.error('Failed to load messages:', error);
+      Alert.alert(
+        'Error',
+        'Failed to load messages. Please check your connection and try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSendMessage = async (text: string) => {
@@ -130,9 +64,10 @@ export default function InboxScreen() {
 
     setSending(true);
 
-    // Create optimistic message
-    const newMessage: Message = {
-      id: Date.now(),
+    // Create optimistic message with temporary ID
+    const tempId = Date.now();
+    const optimisticMessage: Message = {
+      id: tempId,
       user_id: 1,
       sender_type: 'user',
       content: text,
@@ -145,55 +80,36 @@ export default function InboxScreen() {
       created_at: new Date().toISOString(),
     };
 
-    // Add message to list immediately
-    setMessages(prev => [...prev, newMessage]);
+    // Add message to list immediately for optimistic UI
+    setMessages(prev => [...prev, optimisticMessage]);
 
     // Scroll to bottom
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
 
-    // TODO: Replace with actual API call
-    // try {
-    //   const response = await fetch('/api/messages', {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //       Authorization: `Bearer ${token}`
-    //     },
-    //     body: JSON.stringify({ content: text })
-    //   });
-    //   const data = await response.json();
-    //   // Update message with server response
-    // } catch (error) {
-    //   Alert.alert('Error', 'Failed to send message');
-    //   // Remove optimistic message on error
-    //   setMessages(prev => prev.filter(m => m.id !== newMessage.id));
-    // }
+    try {
+      // Send message to server
+      const sentMessage = await MessageService.sendMessage(text);
 
-    // Simulate coach response
-    setTimeout(() => {
-      const coachResponse: Message = {
-        id: Date.now() + 1,
-        user_id: 1,
-        sender_type: 'coach',
-        content: "Thanks for sharing! I'm analyzing your message and will respond with personalized guidance shortly.",
-        attachment_type: null,
-        attachment_url: null,
-        ai_analysis: null,
-        is_read: false,
-        read_at: null,
-        is_ai_generated: true,
-        created_at: new Date().toISOString(),
-      };
+      // Replace optimistic message with server response
+      setMessages(prev =>
+        prev.map(msg => (msg.id === tempId ? sentMessage : msg))
+      );
 
-      setMessages(prev => [...prev, coachResponse]);
+      // Scroll to bottom again
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
-    }, 1500);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      Alert.alert('Error', 'Failed to send message. Please try again.');
 
-    setSending(false);
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleAttachPhoto = async () => {
@@ -258,9 +174,10 @@ export default function InboxScreen() {
   const handlePhotoSelected = async (uri: string) => {
     setSending(true);
 
-    // Create message with photo
-    const photoMessage: Message = {
-      id: Date.now(),
+    // Create optimistic message with photo
+    const tempId = Date.now();
+    const optimisticMessage: Message = {
+      id: tempId,
       user_id: 1,
       sender_type: 'user',
       content: '',
@@ -273,49 +190,34 @@ export default function InboxScreen() {
       created_at: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, photoMessage]);
+    setMessages(prev => [...prev, optimisticMessage]);
 
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
 
-    // TODO: Upload photo to server
-    // const formData = new FormData();
-    // formData.append('photo', { uri, type: 'image/jpeg', name: 'photo.jpg' });
-    // const response = await fetch('/api/messages', { method: 'POST', body: formData });
+    try {
+      // Upload photo to server
+      const sentMessage = await MessageService.sendPhotoMessage(uri);
 
-    // Simulate AI analysis for meal photos
-    setTimeout(() => {
-      const analysisMessage: Message = {
-        id: Date.now() + 1,
-        user_id: 1,
-        sender_type: 'coach',
-        content: 'Great! Let me analyze this for you...',
-        attachment_type: null,
-        attachment_url: null,
-        ai_analysis: {
-          food_items: ['Grilled chicken breast', 'Brown rice', 'Steamed broccoli'],
-          description: 'Healthy balanced meal with lean protein and vegetables',
-          estimated_calories: 450,
-          estimated_protein_g: 42,
-          estimated_carbs_g: 48,
-          estimated_fat_g: 8,
-          quality_score: 9,
-          meal_type: 'lunch',
-        },
-        is_read: false,
-        read_at: null,
-        is_ai_generated: true,
-        created_at: new Date().toISOString(),
-      };
+      // Replace optimistic message with server response (which may include AI analysis)
+      setMessages(prev =>
+        prev.map(msg => (msg.id === tempId ? sentMessage : msg))
+      );
 
-      setMessages(prev => [...prev, analysisMessage]);
+      // Scroll to bottom again
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
-    }, 2000);
+    } catch (error) {
+      console.error('Failed to upload photo:', error);
+      Alert.alert('Error', 'Failed to upload photo. Please try again.');
 
-    setSending(false);
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleImagePress = (url: string) => {
