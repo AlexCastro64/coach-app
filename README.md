@@ -43,6 +43,70 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## Backend Connection Testing
+
+The app includes built-in tools to test and troubleshoot the connection to your backend API:
+
+### Using the Connection Test UI
+
+1. **Via the Explore Tab**:
+   - Open the app and navigate to the "Explore" tab
+   - Expand the "Backend Connection Test" section
+   - Tap "Check Backend Connection" to test connectivity
+
+2. **Dedicated Test Screen**:
+   - Navigate to `/connection-test` in your app
+   - View detailed connection diagnostics and troubleshooting steps
+
+### Programmatic Usage
+
+You can also use the health check service directly in your code:
+
+```typescript
+import { HealthService } from '@/services/health.service';
+
+// Check backend health
+const result = await HealthService.checkHealth();
+
+if (result.status === 'success') {
+  console.log('Backend is reachable!');
+  console.log('Response time:', result.details.responseTime, 'ms');
+} else {
+  console.error('Connection failed:', result.message);
+  console.log('Troubleshooting steps:', result.details.troubleshooting);
+}
+```
+
+### Using the Connection Status Component
+
+```typescript
+import { ConnectionStatus } from '@/components/connection-status';
+
+// Full version with troubleshooting
+<ConnectionStatus showTroubleshooting={true} />
+
+// Compact version
+<ConnectionStatus compact={true} />
+
+// Auto-check on mount
+<ConnectionStatus autoCheck={true} />
+```
+
+### Backend Configuration
+
+The backend API URL is configured via the `EXPO_PUBLIC_API_URL` environment variable:
+
+1. Copy `.env.example` to `.env`
+2. Set the appropriate API URL for your environment:
+   - **Local development**: `http://localhost:8000/api`
+   - **Android emulator**: `http://10.0.2.2:8000/api`
+   - **iOS simulator**: `http://localhost:8000/api`
+   - **Physical device**: `http://YOUR_COMPUTER_IP:8000/api`
+
+3. Restart the Expo development server after changing `.env`
+
+For more configuration details, use the connection test UI which provides environment-specific setup instructions.
+
 ## Get a fresh project
 
 When you're ready, run:

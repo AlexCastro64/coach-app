@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Fonts } from '@/constants/theme';
+import { ConnectionStatus } from '@/components/connection-status';
 
 export default function TabTwoScreen() {
   return (
@@ -31,6 +32,12 @@ export default function TabTwoScreen() {
         </ThemedText>
       </ThemedView>
       <ThemedText>This app includes example code to help you get started.</ThemedText>
+      <Collapsible title="Backend Connection Test">
+        <ThemedText style={{ marginBottom: 12 }}>
+          Test your connection to the backend API. This is useful for troubleshooting connection issues during development.
+        </ThemedText>
+        <ConnectionStatus showTroubleshooting={true} />
+      </Collapsible>
       <Collapsible title="File-based routing">
         <ThemedText>
           This app has two screens:{' '}
