@@ -17,6 +17,7 @@ export function MessageBubble({ message, onImagePress }: MessageBubbleProps) {
   const userBubbleColor = useThemeColor({}, 'tint');
   const coachBubbleColor = useThemeColor({ light: '#f0f0f0', dark: '#2a2a2a' }, 'background');
   const systemBubbleColor = useThemeColor({ light: '#fff3cd', dark: '#3a3020' }, 'background');
+  const userTextColor = useThemeColor({ light: '#fff', dark: '#11181C' }, 'background');
 
   const getBubbleColor = () => {
     if (isSystem) return systemBubbleColor;
@@ -25,7 +26,7 @@ export function MessageBubble({ message, onImagePress }: MessageBubbleProps) {
   };
 
   const getTextColor = () => {
-    if (isUser) return '#fff';
+    if (isUser) return userTextColor;
     return useThemeColor({}, 'text');
   };
 
@@ -110,7 +111,7 @@ export function MessageBubble({ message, onImagePress }: MessageBubbleProps) {
           renderMealAnalysis(message.ai_analysis as MealAnalysis)
         )}
 
-        <ThemedText style={[styles.timestamp, { color: isUser ? '#fff9' : '#999' }]}>
+        <ThemedText style={[styles.timestamp, { color: isUser ? `${userTextColor}99` : '#999' }]}>
           {formatTime(message.created_at)}
         </ThemedText>
       </View>
