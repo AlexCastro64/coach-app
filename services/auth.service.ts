@@ -22,10 +22,35 @@ export class AuthService {
 
       return response.data;
     } catch (error: any) {
+      console.error('Registration error:', error.response?.data || error.message);
+      
+      // Handle validation errors (422)
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const errorMessages: string[] = [];
+        
+        // Extract all error messages from the errors object
+        Object.keys(errors).forEach(field => {
+          const fieldErrors = errors[field];
+          if (Array.isArray(fieldErrors)) {
+            errorMessages.push(...fieldErrors);
+          }
+        });
+        
+        throw new Error(errorMessages.join('\n'));
+      }
+      
+      // Handle generic error message
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       }
-      throw new Error('Registration failed. Please try again.');
+      
+      // Network or other errors
+      if (error.message) {
+        throw new Error(`Registration failed: ${error.message}`);
+      }
+      
+      throw new Error('Registration failed. Please check your connection and try again.');
     }
   }
 
@@ -43,10 +68,35 @@ export class AuthService {
 
       return response.data;
     } catch (error: any) {
+      console.error('Login error:', error.response?.data || error.message);
+      
+      // Handle validation errors (422)
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const errorMessages: string[] = [];
+        
+        // Extract all error messages from the errors object
+        Object.keys(errors).forEach(field => {
+          const fieldErrors = errors[field];
+          if (Array.isArray(fieldErrors)) {
+            errorMessages.push(...fieldErrors);
+          }
+        });
+        
+        throw new Error(errorMessages.join('\n'));
+      }
+      
+      // Handle generic error message
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       }
-      throw new Error('Login failed. Please check your credentials.');
+      
+      // Network or other errors
+      if (error.message) {
+        throw new Error(`Login failed: ${error.message}`);
+      }
+      
+      throw new Error('Login failed. Please check your credentials and connection.');
     }
   }
 

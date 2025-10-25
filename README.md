@@ -1,8 +1,83 @@
-# Welcome to your Expo app
+# Coach App - AI-Powered Fitness & Nutrition Coach
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native mobile app built with Expo that provides AI-powered fitness coaching, meal analysis, and workout tracking.
 
-## Get started
+## Features
+
+- 🔐 **User Authentication** - Secure registration and login with JWT tokens
+- 💬 **AI Coach Chat** - Real-time messaging with your AI fitness coach
+- 📸 **Meal Analysis** - Take photos of meals for instant nutritional breakdown
+- 💪 **Workout Tracking** - Log workouts and get AI-powered feedback
+- 📊 **Progress Insights** - Track your fitness journey over time
+- 🌓 **Dark Mode** - Beautiful UI that adapts to light and dark themes
+
+## Quick Start
+
+**Using Docker?** See [QUICK_START.md](./QUICK_START.md) for the fastest setup! 🚀
+
+### 1. Start Backend
+
+```bash
+cd /path/to/backend
+./vendor/bin/sail up -d
+```
+
+### 2. Start Frontend
+
+```bash
+docker-compose up -d
+```
+
+### 3. Test Connection
+
+```bash
+npm run test-connection
+```
+
+### 4. Open the App
+
+View logs to see QR code:
+```bash
+docker logs coach-app-frontend
+```
+
+Or visit: http://localhost:19000
+
+**Test Credentials:**
+- Email: `test@test.com`
+- Password: `11111111`
+
+### Native Setup (Without Docker)
+
+If not using Docker:
+
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+2. **Configure API**
+   ```bash
+   cp .env.example .env
+   # Edit .env and set: EXPO_PUBLIC_API_URL=http://localhost:8000/api
+   ```
+
+3. **Create Test User**
+   ```bash
+   npm run reset-data
+   ```
+   
+   **Note for Docker users:** If using Docker, run this inside the container:
+   ```bash
+   docker exec coach-app-frontend npm run reset-data
+   ```
+
+4. **Start App**
+   ```bash
+   npm start
+   ```
+
+## Get started (Alternative Methods)
 
 ### Option 1: Using Docker (Recommended)
 
@@ -107,15 +182,97 @@ The backend API URL is configured via the `EXPO_PUBLIC_API_URL` environment vari
 
 For more configuration details, use the connection test UI which provides environment-specific setup instructions.
 
-## Get a fresh project
+## Project Structure
 
-When you're ready, run:
+```
+coach-app/
+├── app/                    # App screens (file-based routing)
+│   ├── (tabs)/            # Main app tabs
+│   │   ├── index.tsx      # Home screen
+│   │   ├── inbox.tsx      # Chat with AI coach
+│   │   └── explore.tsx    # Explore features
+│   ├── _layout.tsx        # Root layout with auth
+│   ├── index.tsx          # Landing page
+│   ├── login.tsx          # Login screen
+│   └── register.tsx       # Registration screen
+├── components/            # Reusable components
+│   ├── inbox/            # Chat components
+│   ├── ui/               # UI components
+│   └── themed-*.tsx      # Theme-aware components
+├── services/             # API and business logic
+│   ├── api.client.ts     # Axios HTTP client
+│   ├── auth.service.ts   # Authentication service
+│   └── token.service.ts  # Secure token storage
+├── contexts/             # React contexts
+│   └── AuthContext.tsx   # Authentication state
+├── types/                # TypeScript types
+└── constants/            # App constants
 
-```bash
-npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Available Scripts
+
+- `npm start` - Start the Expo dev server
+- `npm run reset-data` - Create test user in backend (run inside Docker: `docker exec coach-app-frontend npm run reset-data`)
+- `npm run test-connection` - Test backend connectivity (Docker only)
+- `npm run android` - Start on Android emulator
+- `npm run ios` - Start on iOS simulator
+- `npm run web` - Start web version
+- `npm run lint` - Run ESLint
+
+## Documentation
+
+- [API Setup Guide](./API_SETUP.md) - Connect to your Laravel backend
+- [Docker Setup](./DOCKER_SETUP.md) - Run with Docker
+- [Authentication Flow](./AUTHENTICATION.md) - How auth works
+- [Frontend Specification](./FRONTEND_SPECIFICATION.md) - UI/UX details
+
+## Development
+
+### Authentication
+
+The app uses JWT token authentication with secure storage:
+
+```typescript
+// Register new user
+await AuthService.register({ name, email, password, password_confirmation });
+
+// Login
+await AuthService.login({ email, password });
+
+// Get current user
+const user = await AuthService.getCurrentUser();
+
+// Logout
+await AuthService.logout();
+```
+
+### Making API Calls
+
+Use the configured API client for all backend requests:
+
+```typescript
+import { apiClient } from '@/services/api.client';
+
+// GET request (token automatically added)
+const response = await apiClient.get('/messages');
+
+// POST request
+const response = await apiClient.post('/messages', { content: 'Hello!' });
+```
+
+### Theming
+
+Use themed components for automatic dark mode support:
+
+```tsx
+import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/themed-text';
+
+<ThemedView style={styles.container}>
+  <ThemedText type="title">Hello World</ThemedText>
+</ThemedView>
+```
 
 ## Learn more
 

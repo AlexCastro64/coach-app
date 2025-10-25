@@ -42,7 +42,19 @@ export default function InboxScreen() {
 
     try {
       const response = await MessageService.getMessages();
-      setMessages(response.data);
+      console.log('loadMessages response:', response);
+      console.log('loadMessages response.data:', response.data);
+      console.log('Is response.data an array?', Array.isArray(response.data));
+      
+      // Ensure we always set an array - handle both direct array and wrapped response
+      let messagesData: Message[] = [];
+      if (Array.isArray(response.data)) {
+        messagesData = response.data;
+      } else if (response.data && Array.isArray((response.data as any).data)) {
+        // Handle case where response.data is MessageResponse object
+        messagesData = (response.data as any).data;
+      }
+      setMessages(messagesData);
 
       // Scroll to bottom after messages load
       setTimeout(() => {
@@ -61,6 +73,16 @@ export default function InboxScreen() {
 
   const handleSendMessage = async (text: string) => {
     if (sending) return;
+
+    console.log('handleSendMessage - current messages:', messages);
+    console.log('Is messages an array?', Array.isArray(messages));
+
+    // Defensive check - ensure messages is an array
+    if (!Array.isArray(messages)) {
+      console.error('messages is not an array!', messages);
+      Alert.alert('Error', 'Unable to send message. Please refresh the page.');
+      return;
+    }
 
     setSending(true);
 
@@ -172,6 +194,13 @@ export default function InboxScreen() {
   };
 
   const handlePhotoSelected = async (uri: string) => {
+    // Defensive check - ensure messages is an array
+    if (!Array.isArray(messages)) {
+      console.error('messages is not an array!', messages);
+      Alert.alert('Error', 'Unable to send photo. Please refresh the page.');
+      return;
+    }
+
     setSending(true);
 
     // Create optimistic message with photo

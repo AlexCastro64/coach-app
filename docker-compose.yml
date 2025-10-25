@@ -1,4 +1,5 @@
-version: '3.8'
+# Docker Compose version declaration is obsolete in newer versions
+# Keeping for compatibility but can be removed
 
 services:
   coach-app:
@@ -21,9 +22,16 @@ services:
     environment:
       - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
       - NODE_ENV=development
+      - EXPO_PUBLIC_API_URL=http://laravel.test/api
+    networks:
+      - coach_sail
     stdin_open: true
     tty: true
     command: npm start
 
 volumes:
   node_modules:
+
+networks:
+  coach_sail:
+    external: true

@@ -20,6 +20,15 @@ export default function LandingPage() {
   return (
     <ScrollView style={scrollViewStyle}>
       <ThemedView style={styles.content}>
+        {/* Header with Sign In */}
+        <View style={styles.header}>
+          <Link href="/login" asChild>
+            <Pressable style={styles.signInButton}>
+              <ThemedText style={styles.signInButtonText}>Sign In</ThemedText>
+            </Pressable>
+          </Link>
+        </View>
+
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <ThemedText type="title" style={styles.mainTitle}>
@@ -159,6 +168,24 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 60,
     paddingBottom: 40,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
+  signInButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  signInButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   heroSection: {
     alignItems: 'center',

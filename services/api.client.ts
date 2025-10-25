@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'ax
 import { TokenService } from './token.service';
 
 // Base API URL - configured via EXPO_PUBLIC_API_URL in .env file
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost/api';
 
 class ApiClient {
   private static instance: ApiClient;
@@ -25,17 +25,30 @@ class ApiClient {
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },
       (error) => {
+        console.error('API Request Error:', error);
         return Promise.reject(error);
       }
     );
 
     // Response interceptor for error handling
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        console.log(`API Response: ${response.status} ${response.config.url}`);
+        return response;
+      },
       async (error: AxiosError) => {
+        if (error.response) {
+          console.error(`API Error: ${error.response.status} ${error.config?.url}`, error.response.data);
+        } else if (error.request) {
+          console.error('API Network Error: No response received', error.message);
+        } else {
+          console.error('API Error:', error.message);
+        }
+        
         if (error.response?.status === 401) {
           // Token expired or invalid - clear token
           await TokenService.removeToken();

@@ -14,41 +14,34 @@ export default function OnboardingPayment() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSubscribe = async () => {
+    console.log('handleSubscribe called');
     setIsProcessing(true);
 
     try {
       // TODO: Integrate with Stripe
-      // For now, we'll simulate a successful payment
+      // For now, we'll simulate a successful payment and navigate directly
       // In production, this would:
       // 1. Create a Stripe Checkout Session
       // 2. Open the Stripe payment page
       // 3. Handle the callback after successful payment
       // 4. Update the user's onboarding status
 
-      Alert.alert(
-        'Stripe Integration Needed',
-        'This will integrate with Stripe to process the payment. For now, we\'ll mark onboarding as complete and proceed to the inbox.',
-        [
-          {
-            text: 'Continue to App',
-            onPress: async () => {
-              try {
-                // Mark onboarding as completed on the backend
-                await UserService.completeOnboarding();
+      // Simulate a brief processing delay
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-                // Refresh user data to get updated onboarding status
-                await refreshUser();
+      // Try to refresh user data, but don't block navigation if it fails
+      try {
+          await UserService.completeOnboarding();
 
-                // Navigate to inbox
-                router.replace('/(tabs)/inbox');
-              } catch (error) {
-                Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
-                console.error('Onboarding completion error:', error);
-              }
-            }
-          }
-        ]
-      );
+        await refreshUser();
+        console.log('User refreshed successfully');
+      } catch (error) {
+        console.warn('Failed to refresh user, continuing anyway:', error);
+      }
+
+      // Navigate to inbox
+      console.log('Navigating to inbox');
+      router.replace('/(tabs)/inbox');
     } catch (error) {
       Alert.alert('Error', 'Failed to process payment. Please try again.');
       console.error('Payment error:', error);
@@ -111,7 +104,7 @@ export default function OnboardingPayment() {
         <ThemedView style={styles.pricingCard}>
           <ThemedText style={styles.pricingTitle}>Investment in Your Success</ThemedText>
           <View style={styles.priceContainer}>
-            <ThemedText style={styles.priceAmount}>$89</ThemedText>
+            <ThemedText style={styles.priceAmount}>$19</ThemedText>
             <ThemedText style={styles.pricePeriod}>/month</ThemedText>
           </View>
           <ThemedText style={styles.pricingSubtext}>
