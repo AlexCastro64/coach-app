@@ -37,16 +37,19 @@ function RootLayoutNav() {
       }
     } else {
       // User is signed in
-      if (!inAuthGroup) {
+      const inOnboarding = segments[0] === 'onboarding';
+
+      if (!inAuthGroup && !inOnboarding) {
         // Check if onboarding is completed
         if (user?.onboarding_completed) {
           router.replace('/(tabs)');
         } else {
-          // Redirect to web onboarding
-          // For now, we'll just go to tabs and show a message
-          // In production, you'd open the web onboarding URL
-          router.replace('/(tabs)');
+          // Redirect to onboarding flow
+          router.replace('/onboarding/welcome');
         }
+      } else if (inAuthGroup && !user?.onboarding_completed) {
+        // User trying to access tabs without completing onboarding
+        router.replace('/onboarding/welcome');
       }
     }
   }, [isAuthenticated, isLoading, segments, user]);
@@ -66,6 +69,10 @@ function RootLayoutNav() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="register" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding/welcome" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding/testimonials" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding/questions" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding/payment" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="auto" />
