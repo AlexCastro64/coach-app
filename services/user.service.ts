@@ -107,4 +107,19 @@ export class UserService {
       throw new Error('Failed to cancel subscription. Please try again.');
     }
   }
+
+  /**
+   * Mark onboarding as completed
+   */
+  static async completeOnboarding(): Promise<User> {
+    try {
+      const response = await apiClient.post<User>('/user/onboarding/complete');
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw new Error('Failed to complete onboarding. Please try again.');
+    }
+  }
 }
