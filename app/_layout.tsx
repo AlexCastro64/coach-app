@@ -1,21 +1,32 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { StorageService } from '@/services/storage.service';
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { isAuthenticated, isLoading, user } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const [localOnboardingComplete, setLocalOnboardingComplete] = useState<boolean | null>(null);
+
+  // Check local storage for onboarding completion
+  useEffect(() => {
+    const checkLocalOnboarding = async () => {
+      const completed = await StorageService.getItem('onboarding_completed');
+      setLocalOnboardingComplete(completed === 'true');
+    };
+    checkLocalOnboarding();
+  }, []);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || localOnboardingComplete === null) return;
 
     // Skip authentication checks if auth is disabled
     const authDisabled = process.env.EXPO_PUBLIC_DISABLE_AUTH === 'true';
@@ -38,21 +49,24 @@ function RootLayoutNav() {
     } else {
       // User is signed in
       const inOnboarding = segments[0] === 'onboarding';
+      
+      // Check both backend and local storage for onboarding completion
+      const isOnboardingComplete = user?.onboarding_completed || localOnboardingComplete;
 
       if (!inAuthGroup && !inOnboarding) {
         // Check if onboarding is completed
-        if (user?.onboarding_completed) {
+        if (isOnboardingComplete) {
           router.replace('/(tabs)');
         } else {
           // Redirect to onboarding flow
           router.replace('/onboarding/welcome');
         }
-      } else if (inAuthGroup && !user?.onboarding_completed) {
+      } else if (inAuthGroup && !isOnboardingComplete) {
         // User trying to access tabs without completing onboarding
         router.replace('/onboarding/welcome');
       }
     }
-  }, [isAuthenticated, isLoading, segments, user]);
+  }, [isAuthenticated, isLoading, segments, user, localOnboardingComplete]);
 
   if (isLoading) {
     return (

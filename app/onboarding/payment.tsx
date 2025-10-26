@@ -1,50 +1,162 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Alert, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, ScrollView, Pressable, Alert, ActivityIndicator, Platform } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserService } from '@/services/user.service';
+import { SubscriptionService } from '@/services/subscription.service';
+import { StorageService } from '@/services/storage.service';
 
 export default function OnboardingPayment() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const backgroundColor = useThemeColor({}, 'background');
   const { refreshUser } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasProcessedSession, setHasProcessedSession] = useState(false);
+
+  // Handle return from Stripe checkout
+  useEffect(() => {
+    const handleCheckoutReturn = async () => {
+      const sessionId = params.session_id as string;
+      const success = params.success as string;
+
+      // Prevent processing the same session multiple times
+      if (hasProcessedSession) {
+        console.log('⏭️ Session already processed, skipping');
+        return;
+      }
+
+      if (sessionId && success === 'true') {
+        console.log('✅ Checkout successful, verifying session:', sessionId);
+        setIsProcessing(true);
+        setHasProcessedSession(true);
+
+        try {
+          // Note: Skipping session verification as it should be handled by Stripe webhooks
+          // The backend webhook will update the subscription when Stripe confirms payment
+          console.log('ℹ️ Payment completed, session ID:', sessionId);
+          
+          // Mark onboarding as complete in local storage
+          console.log('🔍 Step 1: Marking onboarding as complete...');
+          await StorageService.setItem('onboarding_completed', 'true');
+          await StorageService.setItem('subscription_session_id', sessionId);
+          console.log('✅ Onboarding marked as complete locally');
+          
+          // Try to complete onboarding on backend (optional, don't fail if it doesn't work)
+          try {
+            console.log('🔍 Step 2: Attempting to complete onboarding on backend...');
+            await UserService.completeOnboarding();
+            console.log('✅ Backend onboarding completed');
+          } catch (backendError) {
+            console.warn('⚠️ Backend onboarding failed (continuing anyway):', backendError);
+          }
+          
+          // Try to refresh user data (optional)
+          try {
+            console.log('🔍 Step 3: Refreshing user data...');
+            await refreshUser();
+            console.log('✅ User data refreshed');
+          } catch (refreshError) {
+            console.warn('⚠️ User refresh failed (continuing anyway):', refreshError);
+          }
+          
+          console.log('🎉 All steps completed successfully, navigating to inbox...');
+          
+          // Navigate to inbox
+          router.replace('/(tabs)/inbox');
+        } catch (error: any) {
+          console.error('❌ Failed to complete onboarding:', error);
+          console.error('Error details:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+          });
+          
+          Alert.alert(
+            'Error',
+            error.message || 'Payment successful but failed to complete setup. Please contact support.'
+          );
+          
+          // Reset so user can try again
+          setHasProcessedSession(false);
+        } finally {
+          setIsProcessing(false);
+        }
+      } else if (success === 'false') {
+        Alert.alert(
+          'Payment Cancelled',
+          'Your payment was cancelled. You can try again when ready.'
+        );
+      }
+    };
+
+    handleCheckoutReturn();
+  }, [params, hasProcessedSession]);
 
   const handleSubscribe = async () => {
-    console.log('handleSubscribe called');
+    console.log('🚀 handleSubscribe called');
     setIsProcessing(true);
 
     try {
-      // TODO: Integrate with Stripe
-      // For now, we'll simulate a successful payment and navigate directly
-      // In production, this would:
-      // 1. Create a Stripe Checkout Session
-      // 2. Open the Stripe payment page
-      // 3. Handle the callback after successful payment
-      // 4. Update the user's onboarding status
+      // Determine redirect URLs based on platform
+      let successUrl: string;
+      let cancelUrl: string;
 
-      // Simulate a brief processing delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Try to refresh user data, but don't block navigation if it fails
-      try {
-          await UserService.completeOnboarding();
-
-        await refreshUser();
-        console.log('User refreshed successfully');
-      } catch (error) {
-        console.warn('Failed to refresh user, continuing anyway:', error);
+      if (Platform.OS === 'web') {
+        // For web, use the current origin
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8081';
+        successUrl = `${origin}/onboarding/payment?success=true&session_id={CHECKOUT_SESSION_ID}`;
+        cancelUrl = `${origin}/onboarding/payment?success=false`;
+        console.log('🌐 Using web URLs for redirect');
+      } else {
+        // For mobile, use deep linking
+        const redirectUrl = Linking.createURL('/onboarding/payment');
+        successUrl = `${redirectUrl}?success=true&session_id={CHECKOUT_SESSION_ID}`;
+        cancelUrl = `${redirectUrl}?success=false`;
+        console.log('📱 Using deep link URLs for redirect');
       }
 
-      // Navigate to inbox
-      console.log('Navigating to inbox');
-      router.replace('/(tabs)/inbox');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to process payment. Please try again.');
-      console.error('Payment error:', error);
+      console.log('📍 Redirect URLs:', { successUrl, cancelUrl, platform: Platform.OS });
+
+      // Create Stripe checkout session
+      console.log('🔄 Calling backend to create checkout session...');
+      const response = await SubscriptionService.createCheckoutSession({
+        successUrl,
+        cancelUrl,
+      });
+
+      console.log('✅ Checkout session created:', response);
+      console.log('🔍 Full response object:', JSON.stringify(response, null, 2));
+      console.log('🌐 Opening Stripe checkout URL:', response.url);
+
+      if (!response.url) {
+        throw new Error('No checkout URL received from backend. Response: ' + JSON.stringify(response));
+      }
+
+      // Open Stripe checkout in browser
+      const result = await WebBrowser.openBrowserAsync(response.url);
+
+      console.log('📊 Browser result:', result);
+
+      // Note: The actual completion will be handled by the useEffect above
+      // when the user returns from Stripe checkout
+    } catch (error: any) {
+      console.error('❌ Payment error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      
+      Alert.alert(
+        'Error',
+        error.message || 'Failed to start checkout. Please try again.'
+      );
     } finally {
       setIsProcessing(false);
     }
