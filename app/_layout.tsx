@@ -3,11 +3,25 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { StorageService } from '@/services/storage.service';
+import { usePushNotifications } from '@/hooks/use-notifications';
+import { useWebSocket, useRealtimeUpdates } from '@/hooks/use-websocket';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 60_000, // 1 minute
+      gcTime: 5 * 60_000, // 5 minutes (formerly cacheTime)
+    },
+  },
+});
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -15,15 +29,23 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const [localOnboardingComplete, setLocalOnboardingComplete] = useState<boolean | null>(null);
+  
+  // Setup push notifications
+  usePushNotifications();
+  
+  // Setup WebSocket connection and real-time updates
+  useWebSocket();
+  useRealtimeUpdates();
 
   // Check local storage for onboarding completion
+  // Re-check whenever navigation changes (e.g., after payment completion)
   useEffect(() => {
     const checkLocalOnboarding = async () => {
       const completed = await StorageService.getItem('onboarding_completed');
       setLocalOnboardingComplete(completed === 'true');
     };
     checkLocalOnboarding();
-  }, []);
+  }, [segments]);
 
   useEffect(() => {
     if (isLoading || localOnboardingComplete === null) return;
@@ -46,6 +68,7 @@ function RootLayoutNav() {
       if (inAuthGroup) {
         router.replace('/login');
       }
+      return;
     } else {
       // User is signed in
       const inOnboarding = segments[0] === 'onboarding';
@@ -56,7 +79,7 @@ function RootLayoutNav() {
       if (!inAuthGroup && !inOnboarding) {
         // Check if onboarding is completed
         if (isOnboardingComplete) {
-          router.replace('/(tabs)');
+          router.replace('/(tabs)/today');
         } else {
           // Redirect to onboarding flow
           router.replace('/onboarding/welcome');
@@ -96,9 +119,11 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

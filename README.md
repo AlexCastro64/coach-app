@@ -1,15 +1,25 @@
 # Coach App - AI-Powered Fitness & Nutrition Coach
 
-A React Native mobile app built with Expo that provides AI-powered fitness coaching, meal analysis, and workout tracking.
+A comprehensive React Native mobile app built with Expo that provides AI-powered fitness coaching, meal analysis, workout tracking, goal management, and real-time communication with coaches.
 
-## Features
+## ✨ Features
 
+### Core Features
 - 🔐 **User Authentication** - Secure registration and login with JWT tokens
-- 💬 **AI Coach Chat** - Real-time messaging with your AI fitness coach
-- 📸 **Meal Analysis** - Take photos of meals for instant nutritional breakdown
-- 💪 **Workout Tracking** - Log workouts and get AI-powered feedback
-- 📊 **Progress Insights** - Track your fitness journey over time
+- 📱 **Today Dashboard** - Daily overview with tasks, quick actions, and progress widgets
+- 📅 **Weekly Plan** - Interactive calendar with task tracking and completion
+- 💪 **Workout Logging** - 9 workout types with metrics, RPE tracking, and photo evidence
+- 📸 **Meal Logging** - Camera-first design with AI nutritional analysis
+- 🎯 **Goal Management** - Set goals with milestones and track progress
+- 📊 **Progress & Analytics** - Streaks, statistics, and weekly summaries
+- 💬 **Coach Messaging** - Real-time chat with your fitness coach
+
+### Advanced Features
+- 🔔 **Push Notifications** - Customizable reminders and updates
+- ⚡ **Real-time Updates** - WebSocket integration for live data sync
+- 📴 **Offline Support** - Queue actions when offline, auto-sync when online
 - 🌓 **Dark Mode** - Beautiful UI that adapts to light and dark themes
+- ♿ **Accessibility** - Loading states, error handling, and empty states
 
 ## Quick Start
 
@@ -220,14 +230,37 @@ coach-app/
 - `npm run web` - Start web version
 - `npm run lint` - Run ESLint
 
-## Documentation
+## 📚 Documentation
 
+### Setup & Configuration
+- [Quick Start Guide](./QUICK_START.md) - Fastest way to get started
 - [API Setup Guide](./API_SETUP.md) - Connect to your Laravel backend
 - [Docker Setup](./DOCKER_SETUP.md) - Run with Docker
 - [Authentication Flow](./AUTHENTICATION.md) - How auth works
+
+### Development
+- [Mobile App Developer Guide](./docs/MOBILE_APP_GUIDE.md) - Complete development guide
+- [API Integration Guide](./docs/API_INTEGRATION.md) - Backend API reference
 - [Frontend Specification](./FRONTEND_SPECIFICATION.md) - UI/UX details
 
-## Development
+### Features
+- [Stripe Setup](./STRIPE_SETUP.md) - Payment integration
+- [Testing Stripe](./TESTING_STRIPE.md) - Test payment flows
+
+## 🛠️ Tech Stack
+
+- **Framework:** React Native with Expo SDK 54
+- **Navigation:** Expo Router (file-based routing)
+- **State Management:** React Query (TanStack Query v5)
+- **HTTP Client:** Axios
+- **Real-time:** WebSockets
+- **Offline Support:** AsyncStorage + Queue System
+- **Push Notifications:** Expo Notifications
+- **Image Handling:** Expo Image Picker
+- **Network Detection:** @react-native-community/netinfo
+- **TypeScript:** Full type safety throughout
+
+## 🚀 Development
 
 ### Authentication
 
@@ -247,30 +280,77 @@ const user = await AuthService.getCurrentUser();
 await AuthService.logout();
 ```
 
-### Making API Calls
+### Making API Calls with React Query
 
-Use the configured API client for all backend requests:
+Use React Query hooks for data fetching:
 
 ```typescript
-import { apiClient } from '@/services/api.client';
+import { useTodayTasks } from '@/hooks/use-plan';
 
-// GET request (token automatically added)
-const response = await apiClient.get('/messages');
-
-// POST request
-const response = await apiClient.post('/messages', { content: 'Hello!' });
+function MyComponent() {
+  const { data, isLoading, error, refetch } = useTodayTasks();
+  
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error.message} onRetry={refetch} />;
+  
+  return <TaskList tasks={data} />;
+}
 ```
 
-### Theming
+### Offline Support
+
+Wrap mutations with offline support:
+
+```typescript
+import { useOfflineMutation } from '@/hooks/use-offline-queue';
+
+const { mutate } = useOfflineMutation(
+  WorkoutService.createWorkout,
+  {
+    type: 'workout',
+    action: 'create',
+    onSuccess: () => showToast('Workout saved!', 'success'),
+  }
+);
+```
+
+### Real-time Updates
+
+Subscribe to WebSocket events:
+
+```typescript
+import { useRealtimeMessages } from '@/hooks/use-websocket';
+
+function ChatComponent() {
+  useRealtimeMessages((message) => {
+    console.log('New message:', message);
+    // Auto-refresh handled by React Query
+  });
+}
+```
+
+### UI Components
 
 Use themed components for automatic dark mode support:
 
 ```tsx
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ErrorMessage } from '@/components/ui/error-message';
+import { EmptyState } from '@/components/ui/empty-state';
 
 <ThemedView style={styles.container}>
   <ThemedText type="title">Hello World</ThemedText>
+  {isLoading && <LoadingSpinner />}
+  {error && <ErrorMessage message={error.message} onRetry={refetch} />}
+  {data.length === 0 && (
+    <EmptyState
+      icon="folder"
+      title="No items"
+      message="Get started by adding your first item"
+    />
+  )}
 </ThemedView>
 ```
 

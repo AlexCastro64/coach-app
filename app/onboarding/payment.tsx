@@ -67,6 +67,9 @@ export default function OnboardingPayment() {
           
           console.log('🎉 All steps completed successfully, navigating to inbox...');
           
+          // Small delay to ensure storage is persisted before navigation
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           // Navigate to inbox
           router.replace('/(tabs)/inbox');
         } catch (error: any) {
