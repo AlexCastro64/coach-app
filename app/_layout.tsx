@@ -11,6 +11,7 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { StorageService } from '@/services/storage.service';
 import { usePushNotifications } from '@/hooks/use-notifications';
 import { useWebSocket, useRealtimeUpdates } from '@/hooks/use-websocket';
+import { QuestionnaireGuard } from '@/components/questionnaire-guard';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -101,17 +102,20 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="register" options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding/welcome" options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding/testimonials" options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding/questions" options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding/payment" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
+      <QuestionnaireGuard>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="register" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding/welcome" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding/testimonials" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding/questions" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding/payment" options={{ headerShown: false }} />
+          <Stack.Screen name="questionnaire/plan-creation" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        </Stack>
+      </QuestionnaireGuard>
       <StatusBar style="auto" />
     </ThemeProvider>
   );
